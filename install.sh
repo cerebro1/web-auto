@@ -1,25 +1,42 @@
 #!/bin/bash
-sudo apt-get update -y
-sudo apt-get install python3 -y
-sudo apt install git -y
-#sudo apt -t buster-backports install tmux -y
-sudo apt-get install python3-pip -y
+sudo apt-get update
+sudo apt-get install -y \
+		apache2 \
+		git \
+		jq \
+		libapache2-mod-wsgi-py3 \
+		python3 \
+		python3-pip \
+		tmux
 sudo pip3 install django
-sudo apt install apache2 -y
-sudo apt install libapache2-mod-wsgi-py3 -y
+
+# install apache and module
+sudo systemctl enable apache2
+sudo systemctl stop apache2
 sudo a2enmod wsgi
-sudo systemctl reload apache2
-git clone https://github.com/datadewins/djando-demo.git
-sudo cp -r djando-demo/dynamic /var/www/html
+
+# configure service and host
+# get the application code
+git clone https://github.com/datadewins/django-demo.git
+sudo cp -r django-demo/dynamic /var/www/html
 sudo chown www-data /var/www/html/dynamic -R
-echo 'WSGIScriptAlias / /var/www/html/dynamic/dynamic/wsgi.py
+
+# setup host definition
+echo '
+WSGIScriptAlias / /var/www/html/dynamic/dynamic/wsgi.py
 WSGIPythonPath /var/www/html/dynamic/
-<Directory /var/www/html/dynamic/>
-   <Files wsgi.py>
-      Order deny,allow
-      Allow from all
-   </Files>
-</Directory>' >> sudo tee -a /etc/apache2/sites-enabled/000-default.conf
+<VirtualHost *:80>
+	ServerAdmin webmaster@localhost
+	DocumentRoot /var/www/html
+	<Directory /var/www/html/dynamic/>
+	   <Files wsgi.py>
+	      Order deny,allow
+	      Allow from all
+	   </Files>
+	</Directory>
+</VirtualHost>
+' | sudo tee /etc/apache2/sites-enabled/000-default.conf
+
+# validate and start apache
 sudo apache2ctl configtest
-sudo systemctl reload apache2
-sudo systemctl restart apache2
+sudo systemctl start apache2
