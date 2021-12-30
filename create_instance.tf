@@ -12,6 +12,7 @@ owners = ["self"]
   }
 }
 
+//Enable to use own ssh key pair
 //resource "aws_key_pair" "mykey" {
 //  key_name   = "mykey"
 //  public_key = "ssh-ed25519 tqzfcXoo mykey"
@@ -114,8 +115,8 @@ resource "aws_network_acl" "webauto" {
 resource "aws_instance" "webauto" {
   ami = data.aws_ami.webauto.id
   instance_type = "t2.micro"
-  key_name = "mail-sonalis"
-//  key_name = aws_key_pair.mykey.key_name
+  key_name = "webauto"
+//  key_name = aws_key_pair.mykey.key_name //Use in case of resource ssh-key pair 
   security_groups = [ aws_security_group.webauto.id ]
   subnet_id = aws_subnet.webauto.id
   associate_public_ip_address = true
